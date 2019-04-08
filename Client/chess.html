@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Chess</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="chess.css" />
+    <script src="chess.js"></script>
+</head>
+<body>
+    <table id="mainBoard"></table>
+    <table class="bubble white"></table>
+    <table class="bubble black"></table>
+    <textarea readonly id="moveHistory" placeholder="Move history"></textarea>
+    <select id="planeSelector">
+        <option value="01">XY</option>
+        <option value="02">XZ</option>
+        <option value="03">XW</option>
+        <option value="12">YZ</option>
+        <option value="13">YW</option>
+        <option value="23">ZW</option>
+    </select>
+    <input type="button" value="+90°" id="rotateFButton"></input>
+    <input type="button" value="-90°" id="rotateBButton"></input>
+    <input type="button" value="Reset" id="resetRotationButton"></input>
+</body>
+</html>
