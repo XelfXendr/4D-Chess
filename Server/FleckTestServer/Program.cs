@@ -29,13 +29,13 @@ namespace FleckTestServer
                 Console.Write("Invalid port, try again: ");
             }
             server = new WebSocketServer(String.Format(ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? "ws://{0}:{1}" : "ws://[{0}]:{1}", ip, port));
-            socketList = new List<IWebSocketConnection>();
+            socketList = new List<IWebSocketConnection>(); 
             rooms = new List<Room>();
-            server.Start(socket =>
+            server.Start(socket => //start server
             {
                 socket.OnOpen = () => OnOpen(socket);
                 socket.OnClose = () => OnClose(socket);
-                socket.OnMessage = message => FirstPhase(socket, message);//
+                socket.OnMessage = message => FirstPhase(socket, message);
                 socket.OnError = e => Console.Write(e + " " + e.Data);
             });
 
@@ -43,7 +43,6 @@ namespace FleckTestServer
             Console.WriteLine("To stop the server, press ESC.");
             while (Console.ReadKey().Key != ConsoleKey.Escape) ;
             server.Dispose();
-
         }
 
         public static void OnOpen(IWebSocketConnection socket) //OnOpen
@@ -139,17 +138,17 @@ namespace FleckTestServer
         public static void SecondPhase(IWebSocketConnection socket, Room room, string message) //when client joins a room/ assign teams
         {
             string[] command = message.Split(' ');
-            if (command.Length < 2)
+            if (command.Length < 2) //wrong command format
             {
                 socket.Send("e 0");
                 return;
             }
-            if (command[0] != "t")
+            if (command[0] != "t") //wrong command for 2nd phase
             {
                 socket.Send("e 0");
                 return;
             }
-            if (command[1] != "0" && command[1] != "1")
+            if (command[1] != "0" && command[1] != "1") //wrong command format
             {
                 socket.Send("e 0");
                 return;
