@@ -5,6 +5,126 @@ body
     padding: 0;
     margin: 0;
 }
+/* MessageBoxes */
+#input
+{
+    width: calc(100% - 60px);
+    resize: none;
+}
+#send
+{
+    width: 50px;
+}
+#log
+{
+    width: 100%;
+    height: calc(100vh - 40px);
+}
+.messageBox
+{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80vmin;
+    height: 50vmin;
+    background: white;
+    border: 0.5vmin solid aqua;
+    transform: translate(-50%, -50%);
+    box-shadow: 
+    0 0 0 1vmin white,
+    0 0 2vmin 1vmin black;
+    font-size: 5vmin
+}
+.messageBox .centerText
+{
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.messageBox .centerText>div
+{
+    display: flex;
+    align-items: center;
+    justify-content:center;
+}
+.messageButton
+{
+    position: relative;
+    background: lightcyan;
+    display: flex;
+    align-items: center;
+    justify-content:center;
+}
+.messageButton.create
+{
+    height: calc(50% - 0.75vmin);
+    margin: 0.5vmin;
+    font-size: 10vmin;
+    box-shadow: 0 0 0.5vmin 0.2vmin black;
+}
+.messageButton.join
+{
+    height: calc(50% - 0.75vmin);
+    margin: 0 0.5vmin 0.5vmin 0.5vmin;
+    font-size: 10vmin;
+    box-shadow: 0 0 0.5vmin 0.2vmin black;
+}
+.messageButton.send
+{
+    height:10vmin;
+    width: 20vmin;
+    left: calc(100% - 25vmin);
+    box-shadow: 0 0 1vmin 0 black;
+}
+.messageButton.white
+{
+    height: calc(50% - 3.75vmin);
+    margin: 0.5vmin;
+    font-size: 10vmin;
+    box-shadow: 0 0 0.5vmin 0.2vmin black;
+    background: white;
+    color: black;
+}
+.messageButton.black
+{
+    height: calc(50% - 3.75vmin);
+    margin: 0 0.5vmin 0.5vmin 0.5vmin;
+    font-size: 10vmin;
+    box-shadow: 0 0 0.5vmin 0.2vmin black;
+    background: black;
+    color: white;
+}
+.messageButton:hover
+{
+    background: lightskyblue;
+}
+.messageButton.white:hover
+{
+    background: lightgray;
+}
+.messageButton.black:hover
+{
+    background: gray;
+}
+.joinTable
+{
+    width: 100%;
+    height: 100%;
+}
+.joinTable *
+{
+    font-size: 4vmin;
+}
+.joinTable input
+{
+    box-shadow: 0 0 0.2vmin 0 black;
+}
+.joinTable .error
+{
+    font-size: 3vmin;
+    color: red;
+}
 /* Board */
 #mainBoard
 {
@@ -26,7 +146,7 @@ body
     margin: 0;
     border-spacing: 0;
 }
-#chessboard
+.chessboard
 {
     width: 100%;
     height: 100%;
@@ -35,14 +155,14 @@ body
     margin: 0;
     border-spacing: 0;
 }
-#chessboard.black
+.chessboard.black
 {
-    border-color: rgb(54, 31, 0);
+    border-color: darkcyan;
     
 }
-#chessboard.white
+.chessboard.white
 {
-    border-color: rgb(224, 173, 105);
+    border-color: lightskyblue;
 }
 .square
 {
@@ -55,11 +175,11 @@ body
 }
 .square.white
 {
-    background: wheat;
+    background: white;
 }
 .square.black
 {
-    background: peru;
+    background: lightblue;
 }
 .square.selected
 {
@@ -91,8 +211,8 @@ body
 {
     position: absolute;
     z-index: 1;
-    background: whitesmoke;
-    border: 0vmin solid whitesmoke;
+    background: orange;
+    border: 0vmin solid orange;
     border-radius: 2vmin;
     padding: 1vmin;
     margin: 0;
@@ -115,7 +235,7 @@ body
     position: absolute;
     top: -1.9vmin;
     left: 50%;
-    border-bottom: 2vmin solid whitesmoke;
+    border-bottom: 2vmin solid orange;
     border-right: 2vmin solid transparent;
     border-left: 2vmin solid transparent;
     transform: translate(-50%, 0);
@@ -127,7 +247,7 @@ body
     position: absolute;
     top: 24vmin;
     left: 50%;
-    border-top: 2vmin solid whitesmoke;
+    border-top: 2vmin solid orange;
     border-right: 2vmin solid transparent;
     border-left: 2vmin solid transparent;
     transform: translate(-50%, 0);
@@ -143,11 +263,11 @@ body
 }
 .bubbleSquare.white
 {
-    background: wheat;
+    background: white;
 }
 .bubbleSquare.black
 {
-    background: peru;
+    background: lightblue;
 }
 /* Other */
 #moveHistory
@@ -156,7 +276,7 @@ body
     left: calc(50vw + 50vmin);
     top: 0;
     width: 32vmin;
-    height: 98vh;
+    height: 100%;
     font-size: 2vmin;
     padding: 1vmin;
     line-height: 0.75;

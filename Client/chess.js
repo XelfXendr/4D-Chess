@@ -1,11 +1,15 @@
+var socket; //WebSocket connection to the server
+var messageBox;
+var roomNumber;
+
 var mainBoard;//table element of the main board (will prolly change in future?)
 var squareArray;//array of td elements representing squares on chessboard
 var pieces; //[] of chess pieces {position: [], team: bool, roleNumber: number, ?hasMoved: bool, element: htmlElement}
 
 var size = 4;//size of the board in all dimensions
 
-var myTurn = false;
-var myTeam = false;// 1 => white, 0 => black
+var myTurn; /////!!!!!!!!!!!!!!!!
+var myTeam;// 1 => white, 0 => black
 
 var selectedPosition; //[]
 var currentMoves; //[] of: {position: [], originPiece: pieces[i], action: string, (targetPiece)}
@@ -28,6 +32,241 @@ var rotationPlane = [0,1]; //plane the board rotates around given by the index o
 
 //setting up stuff
 window.onload = () => {
+    socket = new WebSocket("ws://localhost:11000");
+    socket.onerror = () =>
+    {
+        alert("Connection error.");
+    }
+    socket.onopen = () =>
+    {
+        createMessageBox(1);    
+    };
+}
+var createMessageBox = (id) =>
+{
+    if(messageBox)
+        messageBox.parentNode.removeChild(messageBox);
+    messageBox = null;
+    switch(id)
+    {
+        case 1: //initial create/join room window
+        {
+            messageBox = createElement("div", ["messageBox"], null, null, document.body);
+            let createButton = createElement("div", ["messageButton","create"], null, "Create Room", messageBox);
+            let joinButton = createElement("div", ["messageButton","join"], null, "Join Room", messageBox);
+            createButton.onclick = () =>
+            {
+                createMessageBox(2);
+            };
+            joinButton.onclick = () =>
+            {
+                createMessageBox(3);
+            };
+            break;
+        }
+        case 2: //enter password for the room you want to create
+        {
+            messageBox = createElement("div", ["messageBox"], null, null, document.body);
+            let table = createElement("table", ["joinTable"], null, null, messageBox);
+            let tr = createElement("tr", null, null, null, table);
+            createElement("td", null, null, "Create password:", tr);
+            let td = createElement("td", null, null, null, tr);
+            let passwordInput = createElement("input", null, null, null, td);
+            let passwordError = createElement("div", ["error"], null, null, td);
+            passwordInput.type = "password";
+
+            tr = createElement("tr", null, null, null, table);
+            createElement("td", null, null, null, tr);
+            td = createElement("td", null, null, null, tr);
+            let sendButton = createElement("div", ["messageButton", "send"], null, "Send", td);
+            
+            sendButton.onclick = () => {
+                let password = passwordInput.value;
+                if(password.includes(" "))
+                {
+                    passwordError.textContent = "Password cannot contain spaces.";
+                    passwordInput.style.borderColor = "red";
+                    return;
+                }
+                socket.send("c " + password);
+                socket.onmessage = (e) =>
+                {
+                    let command = e.data.split(" ");
+                    if(command.length < 3 || command[0] == "e")
+                    {
+                        console.log("Message error. Message: " + e.data);
+                        return;
+                    }
+                    if(command[0] == "j" && command[1] == "s")
+                    {
+                        roomNumber = command[2];
+                        console.log("Room number: " + roomNumber);
+                        createMessageBox(4);
+                    }
+                }
+            }
+            break;
+        }
+        case 3: //enter number and password of the room you want to join
+        {
+            messageBox = createElement("div", ["messageBox"], null, null, document.body);
+            let table = createElement("table", ["joinTable"], null, null, messageBox);
+
+            let tr = createElement("tr", null, null, null, table);
+            createElement("td", null, null, "Room number:", tr);
+            let td = createElement("td", null, null, null, tr);
+            let numberInput = createElement("input", null, null, null, td);
+            numberInput.type = "text";
+            let numberError = createElement("div", ["error"], null, null, td);
+
+            tr = createElement("tr", null, null, null, table);
+            createElement("td", null, null, "Room password:", tr);
+            td = createElement("td", null, null, null, tr);
+            let passwordInput = createElement("input", null, null, null, td);
+            passwordInput.type = "password";
+            let passwordError = createElement("div", ["error"], null, null, td);
+
+            tr = createElement("tr", null, null, null, table);
+            createElement("td", null, null, null, tr);
+            td = createElement("td", null, null, null, tr);
+            let sendButton = createElement("div", ["messageButton", "send"], null, "Send", td);
+
+            sendButton.onclick = () =>
+            {
+                let password = passwordInput.value;
+                let number = numberInput.value;
+                let isError = false;
+                if(password.includes(" "))
+                {
+                    passwordError.textContent = "Password cannot contain spaces.";
+                    passwordInput.style.borderColor = "red";
+                    isError = true;
+                }
+                if(isNaN(Number(number)))
+                {
+                    numberError.textContent = "Not a valid number.";
+                    numberInput.style.borderColor = "red";
+                    isError = true;
+                }
+                if(isError)
+                    return;
+                numberError.textContent = ""
+                numberInput.style.borderColor = "black";
+                passwordError.textContent = "";
+                passwordInput.style.borderColor = "black";
+                socket.send("j " + number + " " + password);
+                socket.onmessage = (e) =>
+                {
+                    let command = e.data.split(" ");
+                    if(command.length < 3)
+                    {
+                        console.log("Message error. Message: " + e.data);
+                        if(command.length == 2)
+                        {
+                            if(command[0] = "e")
+                            {
+                                switch(command[1])
+                                {
+                                    case "1":
+                                    {
+                                        numberError.textContent = "Room doesn't exits."
+                                        numberInput.style.borderColor = "red";
+                                        break;
+                                    }
+                                    case "2":
+                                    {
+                                        passwordError.textContent = "Wrong password.";
+                                        passwordInput.style.borderColor = "red";
+                                        break;
+                                    }
+                                    case "3":
+                                    {
+                                        numberError.textContent = "Room is full."
+                                        numberInput.style.borderColor = "red";
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    }
+                    if(command[0] == "j" && command[1] == "s")
+                    {
+                        roomNumber = command[2];
+                        console.log("Room number: " + roomNumber);
+                        createMessageBox(4);
+                    }
+                }
+            }
+            break;
+        }
+        case 4: //choose team
+        {
+            messageBox = createElement("div", ["messageBox"], null, null, document.body);
+            createElement("div", null, null, "Preffered team:", messageBox);
+            let whiteButton = createElement("div", ["messageButton", "white"], null, "White", messageBox);
+            let blackButton = createElement("div", ["messageButton", "black"], null, "Black", messageBox);
+            whiteButton.onclick = () => 
+            {
+                socket.send("t 1");
+                createMessageBox(5);
+                socket.onmessage = (e) =>
+                {
+                    let command = e.data.split(" ");
+                    if(command.length < 2 || command[0] == "e")
+                    {
+                        console.log("Message error. Message: " + e.data);
+                        return;
+                    }
+                    if(command[0] == "t")
+                    {
+                        myTeam = command[1] == "1";
+                        console.log("Team: " + (myTeam ? "white" : "black"));
+                        createMessageBox(0);
+                        createBoard();
+                    }
+                }
+            }
+            blackButton.onclick = () => 
+            {
+                socket.send("t 0");
+                createMessageBox(5);
+                socket.onmessage = (e) =>
+                {
+                    let command = e.data.split(" ");
+                    if(command.length < 2 || command[0] == "e")
+                    {
+                        console.log("Message error. Message: " + e.data);
+                        return;
+                    }
+                    if(command[0] == "t")
+                    {
+                        myTeam = command[1] == "1";
+                        console.log("Team: " + (myTeam ? "white" : "black"));
+                        createMessageBox(0);
+                        createBoard();
+                    }
+                }
+            }
+            break;
+        }
+        case 5: //wait for othe player
+        {
+            messageBox = createElement("div", ["messageBox"], null, null, document.body);
+            let div = createElement("div", ["centerText"], null, null, messageBox);
+            createElement("div", null, null, "Waiting for the other player.", div);
+            createElement("br", null, null, null, div);
+            createElement("div", null, null, "Room number: " + roomNumber, div);
+             
+            break;
+        }
+        default:
+            return;
+    }
+}
+let createBoard = () =>
+{
+    myTurn = myTeam;
     mainBoard = document.getElementById("mainBoard");
     squareArray = [];
     pieces = [];
@@ -36,31 +275,20 @@ window.onload = () => {
     let black = true;
     for(let n = 0; n < size; n++)
     {
-        let maintr = document.createElement("tr");
-        mainBoard.insertBefore(maintr,mainBoard.firstChild);
+        let maintr = createElement("tr", null, null, null, mainBoard, true);
         squareArray.push([]);
         for(let m = 0; m < size; m++)
         {
-            let maintd = document.createElement("td");
-            maintd.classList.add("mainSquare");
-            maintr.appendChild(maintd);
-            let chessboard = document.createElement("table");
-            chessboard.id = "chessboard";
-            chessboard.classList.add(mainBlack ? "black" : "white");
-            maintd.appendChild(chessboard);
+            let maintd = createElement("td", ["mainSquare"], null, null, maintr, false);
+            let chessboard = createElement("table", [mainBlack ? "black" : "white", "chessboard"], null, null, maintd, false);
             squareArray[n].push([]);
             for(let j = 0; j < size; j++)
             {
-                let tr = document.createElement("tr");
-                chessboard.insertBefore(tr,chessboard.firstChild);
+                let tr = createElement("tr", null, null, null, chessboard, true);
                 squareArray[n][m].push([]);
                 for(let i = 0; i < size; i++)
                 {
-                    let td = document.createElement("td")
-                    td.classList.add("square");
-                    td.classList.add(black ? "black" : "white");
-                    td.id = i+"-"+j+"-"+m+"-"+n;
-                    tr.appendChild(td);
+                    let td = createElement("td", ["square", black ? "black" : "white"], i + "-" + j + "-" + m + "-" + n, null, tr, false);
                     squareArray[n][m][j].push(td);
 
                     td.onclick = select;
@@ -84,19 +312,12 @@ window.onload = () => {
     {
         let black = true;
         let tds = [];
-        for(let j = 0; j < 4; j++)
+        for(let j = 1; j <= 4; j++)
         {
-            let tr = document.createElement("tr");
-            promotionBubbles[i].appendChild(tr);
-            tds.push(document.createElement("td"));
-            tr.appendChild(tds[j]);
-            tds[j].classList.add("bubbleSquare");
-            tds[j].classList.add(black ? "black" : "white");
-            let div = document.createElement("div");
-            tds[j].appendChild(div);
-            div.classList.add(pieceNames[j+1]);
-            div.classList.add(i == 0 ? "black" : "white");
-            div.classList.add("piece");
+            let tr = createElement("tr", null, null, null, promotionBubbles[i], false);
+            let td = createElement("td", ["bubbleSquare", black ? "black" : "white"], null, null, tr, false);
+            tds.push(td);
+            let div = createElement("div", [pieceNames[j], i == 0 ? "black" : "white", "piece"], null, null, td, false);
             black = !black;
         }
         tds[0].onclick = () => promotePiece(1);
@@ -117,7 +338,7 @@ window.onload = () => {
 
     //put pieces on board
     resetPieces()
-} 
+}
 //resets pieces
 let resetPieces = () =>
 {
@@ -192,12 +413,8 @@ let replacePieces = () =>
         if(p.element)
             p.element.parentNode.removeChild(p.element);
         let rotatedPosition = rotatePosition(p.position, rotationMatrix);
-        let figure = document.createElement("div");
-        figure.classList.add(pieceNames[p.roleNumber]);
-        figure.classList.add(p.team ? "white" : "black");
-        figure.classList.add("piece");
+        let figure = createElement("div", [pieceNames[p.roleNumber], p.team ? "white" : "black", "piece"], null, null, squareArray[rotatedPosition[3]][rotatedPosition[2]][rotatedPosition[1]][rotatedPosition[0]], false);
         p.element = figure;
-        squareArray[rotatedPosition[3]][rotatedPosition[2]][rotatedPosition[1]][rotatedPosition[0]].appendChild(figure);
     });
 }
 //select square
@@ -619,6 +836,21 @@ let rotateBoard = (plane, clockwise) =>
             rotateBoard([0,2], false, false);
             rotateBoard([0,2], false, false);
         }
+        if(squareArray[0][0][0][0].classList.contains("white"))
+        {
+            squareArray.forEach(s1 => s1.forEach(s2 => s2.forEach(s3 => s3.forEach(s4 => {
+                if(s4.classList.contains("white"))
+                {
+                    s4.classList.remove("white");
+                    s4.classList.add("black");
+                }
+                else
+                {
+                    s4.classList.remove("black");
+                    s4.classList.add("white");    
+                }
+            }))));
+        }
     }
     else
     {
@@ -634,14 +866,13 @@ let rotateBoard = (plane, clockwise) =>
                 s4.classList.add("white");    
             }
         }))));
-
         rotationMatrix = multiplyMatrices(createRotationMatrix(plane, clockwise), rotationMatrix);
         inverseRotationMatrix = multiplyMatrices(inverseRotationMatrix, createRotationMatrix(plane, !clockwise));
     }
     replacePieces();
 }
-/* helping functions */
 
+/* helping functions */
 Array.prototype.equals = function(comparison) //Are the values of two arrays equal?
 {
     if(this.length != comparison.length)
@@ -707,4 +938,24 @@ let copyMatrix = (matrix) =>
         a.push(l.slice());
     });
     return a;
+}
+let createElement = (tag, classList, id, content, parent, first) => //creates a new element (string, [string], string, string, element, bool)
+{
+    let element = document.createElement(tag);
+    if(classList)
+        classList.forEach(c => {
+            element.classList.add(c);
+        });
+    if(id)
+        element.id = id;
+    if(content)
+        element.textContent = content;
+    if(parent)
+    {
+        if(first)
+            parent.insertBefore(element, parent.firstChild);
+        else
+            parent.appendChild(element);
+    }
+    return element;
 }
