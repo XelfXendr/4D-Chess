@@ -180,26 +180,31 @@ namespace FleckTestServer
         public static void ThirdPhase(IWebSocketConnection socket, Room room, string message) //the game
         {
             string[] command = message.Split(' ');
-            if (command[0] == "m")
+            if(command.Length > 0)
             {
-                var receiver = room.sockets.Find(s => s != socket);
-                if (!(receiver is null))
-                    receiver.Send(message);
-                return;
-            }
-            if (command[0] == "r")
-            {
-                room.playersChose++;
-                if(room.playersChose >= 2)
+                //move: m x1 y1 z1 w1 x2 y2 z2 w2
+                //promote: p x y z w promotionNumber
+                if (command[0] == "m" || command[0] == "p")
                 {
-                    room.playersChose = 0;
-                    room.sockets.ForEach(s =>
-                    {
-                        s.Send("r");
-                        s.OnMessage = m => SecondPhase(s, room, m);
-                    });
+                    var receiver = room.sockets.Find(s => s != socket);
+                    if (!(receiver is null))
+                        receiver.Send(message);
+                    return;
                 }
-                return;
+                if (command[0] == "r") //restart?
+                {
+                    room.playersChose++;
+                    if(room.playersChose >= 2)
+                    {
+                        room.playersChose = 0;
+                        room.sockets.ForEach(s =>
+                        {
+                            s.Send("r");
+                            s.OnMessage = m => SecondPhase(s, room, m);
+                        });
+                    }
+                    return;
+                }
             }
             socket.Send("e 0");
             return;

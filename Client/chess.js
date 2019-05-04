@@ -8,16 +8,16 @@ var pieces; //[] of chess pieces {position: [], team: bool, roleNumber: number, 
 
 var size = 4;//size of the board in all dimensions
 
-var myTurn; /////!!!!!!!!!!!!!!!!
-var myTeam;// 1 => white, 0 => black
+var myTurn;//bool
+var myTeam;// true => white, false => black
 
 var selectedPosition; //[]
 var currentMoves; //[] of: {position: [], originPiece: pieces[i], action: string, (targetPiece)}
 
 var promotionBubbles; //pawn promotion bubbles: [1] white, [0] black
+var promotedPawnPosition;
 
 var waitingForPromotion = false;
-var pawnToBePromoted;
 
 var dimensionSymbols = [["A","B","C","D"],["1","2","3","4"],["α","β","γ","δ"],["♈","♉","♊","♋"]];
 var pieceSymbols = [["♟","♜","♝","♞","♛","♚"],["♙","♖","♗","♘","♕","♔"]];
@@ -29,6 +29,12 @@ var identityMatrix;
 var rotationMatrix; //base is the identity matrix
 var inverseRotationMatrix; //inverse of rotationMatrix
 var rotationPlane = [0,1]; //plane the board rotates around given by the index of it't 2 axises
+
+/* 
+TODO:
+Redo promotion bubbles. Only one player needs a promotion bubble, but needs one for top position and one or bottom position due to the possibility to rotate board.
+Secure sockets?
+*/
 
 //setting up stuff
 window.onload = () => {
@@ -338,6 +344,33 @@ let createBoard = () =>
 
     //put pieces on board
     resetPieces()
+    //in progress
+    socket.onmessage = e =>
+    {
+        message = e.data.split(" ");
+        if(message.length <= 0)
+            return;
+        if(message[0] == "e")
+        {
+            console.log("Error code " + message[1]);
+            return;
+        }
+        if(message[0] == "m")
+        {
+            let position1 = [Number(message[1]), Number(message[2]), Number(message[3]), Number(message[4])];
+            let position2 = [Number(message[5]), Number(message[6]), Number(message[7]), Number(message[8])];
+            turnMove(position1, position2);
+            myTurn = true;
+            return;
+        }
+        if(message[0] == "p")
+        {
+            let position = [Number(message[1]), Number(message[2]), Number(message[3]), Number(message[4])];
+            let rank = Number(message[5]);
+            turnPromote(position, rank);
+        }
+    }
+    
 }
 //resets pieces
 let resetPieces = () =>
@@ -417,28 +450,40 @@ let replacePieces = () =>
         p.element = figure;
     });
 }
+//finds and returns the piece on position
+let pieceOnPosition = (position) => 
+{
+    return pieces.find(x => x.position.equals(position));
+}
+let removePiece = (piece) =>
+{
+    piece.element.parentNode.removeChild(piece.element);
+    pieces.splice(pieces.indexOf(piece), 1);
+}
 //select square
 let select = (e) =>
 {
+    if(!myTurn)
+        return;
     if(waitingForPromotion)
         return;
     let id = (e.target == e.currentTarget ? e.srcElement.id : e.srcElement.parentElement.id).split("-");
     let newPos = [Number(id[0]),Number(id[1]),Number(id[2]),Number(id[3])];
-    let piecePos = rotatePosition(newPos, inverseRotationMatrix);
+    let gamePos = rotatePosition(newPos, inverseRotationMatrix);
     let selectedElement = squareArray[newPos[3]][newPos[2]][newPos[1]][newPos[0]];
     
     if(selectedElement.classList.contains("active"))
     {
         deselect();
-        movePiece(piecePos);
+        moveSelectedPiece(gamePos);
         myTurn = !myTurn;
     }
     else
     {
         deselect();
-        if(pieces.some(element => element.position.equals(piecePos) && element.team == (myTeam == myTurn)))
+        if(pieces.some(element => element.position.equals(gamePos) && element.team == (myTeam == myTurn)))
         {
-            selectedPosition = piecePos;
+            selectedPosition = gamePos;
             selectedElement.classList.add("selected");
             showMovement(selectedPosition);
         }
@@ -475,7 +520,7 @@ let deselect = () =>
 //show where selected piece can move
 let showMovement = (position) =>
 {
-    let piece = pieces.find(element => element.position.equals(position));
+    let piece = pieceOnPosition(position);
     currentMoves = movesOfPiece(piece);
     currentMoves.forEach(p =>
     {
@@ -564,7 +609,7 @@ let movesOfPiece = (piece) =>
                         movePosition[d] += s;
                         if(movePosition[d] < 0 || movePosition[d] >= size)
                             break;
-                        let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                        let targetPiece = pieceOnPosition(movePosition);
                         if(targetPiece)
                         {
                             if(targetPiece.team != piece.team)
@@ -598,7 +643,7 @@ let movesOfPiece = (piece) =>
                                 movePosition[d2] += s2;
                                 if(movePosition[d1] < 0 || movePosition[d1] >= size || movePosition[d2] < 0 || movePosition[d2] >= size)
                                     break;
-                                let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                                let targetPiece = pieceOnPosition(movePosition);
                                 if(targetPiece)
                                 {
                                     if(targetPiece.team != piece.team)
@@ -636,7 +681,7 @@ let movesOfPiece = (piece) =>
                                 movePosition[d2] += s2 * c2;
                                 if(movePosition[d1] >= 0 && movePosition[d1] < size && movePosition[d2] >= 0 && movePosition[d2] < size)
                                 {
-                                    let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                                    let targetPiece = pieceOnPosition(movePosition);
                                     if(targetPiece)
                                     {
                                         if(targetPiece.team != piece.team)
@@ -667,7 +712,7 @@ let movesOfPiece = (piece) =>
                         movePosition[d] += s;
                         if(movePosition[d] < 0 || movePosition[d] >= size)
                             break;
-                        let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                        let targetPiece = pieceOnPosition(movePosition);
                         if(targetPiece)
                         {
                             if(targetPiece.team != piece.team)
@@ -698,7 +743,7 @@ let movesOfPiece = (piece) =>
                                 movePosition[d2] += s2;
                                 if(movePosition[d1] < 0 || movePosition[d1] >= size || movePosition[d2] < 0 || movePosition[d2] >= size)
                                     break;
-                                let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                                let targetPiece = pieceOnPosition(movePosition);
                                 if(targetPiece)
                                 {
                                     if(targetPiece.team != piece.team)
@@ -738,7 +783,7 @@ let movesOfPiece = (piece) =>
                                         movePosition[3] = piece.position[3] + m;
                                         if(movePosition[3] >= 0 && movePosition[3] < size && !(i == 0 && j == 0 && k == 0 && m == 0))
                                         {
-                                            let targetPiece = pieces.find(p => p.position.equals(movePosition));
+                                            let targetPiece = pieceOnPosition(movePosition);
                                             if(targetPiece)
                                             {
                                                 if(targetPiece.team != piece.team)
@@ -759,70 +804,93 @@ let movesOfPiece = (piece) =>
     }
     return moves;
 }
-
 //move piece
-let movePiece = (position) =>
-{   
-    let rotPos = rotatePosition(position, rotationMatrix);
+let moveSelectedPiece = (position) =>
+{  
     let move = currentMoves.find(m => m.position.equals(position));
-    addToHistory(move);
-    //killing enemy piece
-    if(move.action == "kill")
-    {
-        move.targetPiece.element.parentNode.removeChild(move.targetPiece.element);
-        pieces.splice(pieces.indexOf(move.targetPiece), 1);
-    }
-    //moving piece
-    let piece = move.originPiece;
-    let originPos = rotatePosition(piece.position, rotationMatrix);
-    squareArray[rotPos[3]][rotPos[2]][rotPos[1]][rotPos[0]].appendChild(squareArray[originPos[3]][originPos[2]][originPos[1]][originPos[0]].firstChild);
-    piece.position = position;
+    piece = move.originPiece;
+    let position1 = piece.position;
+    turnMove(position1, position);
+    socket.send("m " + position1[0] + " " + position1[1] + " " + position1[2] + " " + position1[3] + " " + position[0] + " " + position[1] + " " + position[2] + " " + position[3])
     //pawn promotion //////////🤷🔫
-    if(piece.roleNumber == 0)
+    if(piece.roleNumber == 0 && piece.team == myTeam && ((piece.team && piece.position[1] == size-1 && piece.position[3] == size-1) || (!piece.team && piece.position[1] == 0 && piece.position[3] == 0)))
     {
-        piece.hasMoved = true;
-        if(((piece.team) && piece.position[1] == size-1 && piece.position[3] == size-1) || (!(piece.team) && piece.position[1] == 0 && piece.position[3] == 0))
-        {
-            placeBubble(piece);
-        }
+        placeBubble(position, piece.team);
     }
 }
+
 //places promotion bubble on position
-let placeBubble = (pawn) =>
+let placeBubble = (position, team /*must change this in future*/) =>
 {
-    let position = rotatePosition(pawn.position, rotationMatrix);
     let rect = squareArray[position[3]][position[2]][position[1]][position[0]].getBoundingClientRect();
     let width = document.documentElement.clientWidth;
     let height = document.documentElement.clientHeight;
     let vmin = Math.min(width, height);
     let l = ((rect.left - (width - vmin) / 2) / vmin) * 100;
     let t = ((rect.top - (height - vmin) / 2) / vmin) * 100;
-    let bubble = promotionBubbles[pawn.team ? 1 : 0];
+    let bubble = promotionBubbles[team ? 1 : 0];
     bubble.style.left = "calc(50% - 50vmin + " + l + "vmin)";
     bubble.style.top = "calc(50% - 50vmin + " + t + "vmin)";
     bubble.style.visibility = "visible";
-    waitingForPromotion = true;
-    pawnToBePromoted = pawn;
+    promotedPawnPosition = position;
 }
 //promotes the pawnToBePromoted pawn
 let promotePiece = (newRank) => //string
 {
-    promotionBubbles[pawnToBePromoted.team ? 1 : 0].style.visibility = "hidden";
-    pawnToBePromoted.roleNumber = newRank;
-    pawnToBePromoted.element.classList.remove("pawn");
-    pawnToBePromoted.element.classList.add(pieceNames[newRank]);
-    waitingForPromotion = false;
+    promotionBubbles[0].style.visibility = "hidden";
+    promotionBubbles[1].style.visibility = "hidden";
+    turnPromote(promotedPawnPosition, newRank);
+    socket.send("p " + promotedPawnPosition[0] + " " + promotedPawnPosition[1] + " " + promotedPawnPosition[2] + " " + promotedPawnPosition[3] + " " + newRank);
 }
-let addToHistory = (move) =>
-{
-    let string = pieceSymbols[move.originPiece.team ? 1 : 0][move.originPiece.roleNumber]
-        + "[" + positionToString(move.originPiece.position) + "]"
+
+let turnMove = (position1, position2) => 
+{   
+    //killing targetted piece
+    let enemyPiece = pieceOnPosition(position2);
+    if(enemyPiece)
+    {
+        removePiece(enemyPiece)
+    }
+    //moving piece
+    let piece = pieceOnPosition(position1);
+    piece.position = position2;
+    if(piece.roleNumber == 0) //if piece is pawn
+    {
+        piece.hasMoved = true;
+    }
+    let screenPos = rotatePosition(position2, rotationMatrix);
+    squareArray[screenPos[3]][screenPos[2]][screenPos[1]][screenPos[0]].appendChild(piece.element);
+    //adding move to history
+    let string = pieceSymbols[piece.team ? 1 : 0][piece.roleNumber]
+        + "[" + positionToString(position1) + "]"
         + " => "
-        + (move.action == "kill" ? pieceSymbols[move.targetPiece.team ? 1 : 0][move.targetPiece.roleNumber] : "")
-        + "[" + positionToString(move.position) + "]"
+        + ((enemyPiece != null) ? pieceSymbols[enemyPiece.team ? 1 : 0][enemyPiece.roleNumber] : "")
+        + "[" + positionToString(position2) + "]"
         + String.fromCharCode(10, 13);
     moveHistoryElement.value += string;
     moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
+
+    if((piece.team && piece.position[1] == size-1 && piece.position[3] == size-1) || (!piece.team && piece.position[1] == 0 && piece.position[3] == 0))
+        waitingForPromotion = true;
+
+}
+let turnPromote = (position, newRank) =>
+{
+    let piece = pieceOnPosition(position);
+    //adding promotion to history
+    let string = pieceSymbols[piece.team ? 1 : 0][piece.roleNumber]
+        + "[" + positionToString(position) + "]"
+        + " => "
+        + pieceSymbols[piece.team ? 1 : 0][newRank]
+        + String.fromCharCode(10, 13);
+    moveHistoryElement.value += string;
+    moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
+    //promoting
+    piece.roleNumber = newRank;
+    piece.element.classList.remove("pawn");
+    piece.element.classList.add(pieceNames[newRank]);
+    waitingForPromotion = false;
+    
 }
 let rotateBoard = (plane, clockwise) => 
 {
