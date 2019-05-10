@@ -220,15 +220,15 @@ body
     box-shadow: 0 0 1vmin black;
     visibility: hidden;
 }
-.bubble.white
+.bubble.top
 {
     transform: translate(-1vmin, 6vmin);
 }
-.bubble.black
+.bubble.bottom
 {
     transform: translate(-1vmin, -25vmin);
 }
-.bubble.white::before
+.bubble.top::before
 {
     z-index: 2;
     content: "";
@@ -240,7 +240,7 @@ body
     border-left: 2vmin solid transparent;
     transform: translate(-50%, 0);
 }
-.bubble.black::before
+.bubble.bottom::before
 {
     z-index: 2;
     content: "";

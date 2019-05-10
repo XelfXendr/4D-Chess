@@ -1,3 +1,6 @@
+var ip = "localhost";
+var port = 11000;
+
 var socket; //WebSocket connection to the server
 var messageBox;
 var roomNumber;
@@ -32,13 +35,12 @@ var rotationPlane = [0,1]; //plane the board rotates around given by the index o
 
 /* 
 TODO:
-Redo promotion bubbles. Only one player needs a promotion bubble, but needs one for top position and one or bottom position due to the possibility to rotate board.
 Secure sockets?
 */
 
 //setting up stuff
 window.onload = () => {
-    socket = new WebSocket("ws://localhost:11000");
+    socket = new WebSocket("ws://" + ip + ":" + port);
     socket.onerror = () =>
     {
         alert("Connection error.");
@@ -312,8 +314,8 @@ let createBoard = () =>
     identityMatrix = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
     rotateBoard(null, false);
     //set up promotion bubbles
-    promotionBubbles = [document.getElementsByClassName("bubble black")[0]];
-    promotionBubbles.push(document.getElementsByClassName("bubble white")[0]);
+    promotionBubbles = [document.getElementsByClassName("bubble top")[0]];
+    promotionBubbles.push(document.getElementsByClassName("bubble bottom")[0]);
     for(let i = 0; i < 2; i++)
     {
         let black = true;
@@ -323,7 +325,7 @@ let createBoard = () =>
             let tr = createElement("tr", null, null, null, promotionBubbles[i], false);
             let td = createElement("td", ["bubbleSquare", black ? "black" : "white"], null, null, tr, false);
             tds.push(td);
-            let div = createElement("div", [pieceNames[j], i == 0 ? "black" : "white", "piece"], null, null, td, false);
+            let div = createElement("div", [pieceNames[j], myTeam ? "white" :  "black", "piece"], null, null, td, false);
             black = !black;
         }
         tds[0].onclick = () => promotePiece(1);
@@ -344,7 +346,8 @@ let createBoard = () =>
 
     //put pieces on board
     resetPieces()
-    //in progress
+
+    //socket onMessage event
     socket.onmessage = e =>
     {
         message = e.data.split(" ");
@@ -815,12 +818,12 @@ let moveSelectedPiece = (position) =>
     //pawn promotion //////////🤷🔫
     if(piece.roleNumber == 0 && piece.team == myTeam && ((piece.team && piece.position[1] == size-1 && piece.position[3] == size-1) || (!piece.team && piece.position[1] == 0 && piece.position[3] == 0)))
     {
-        placeBubble(position, piece.team);
+        placeBubble(rotatePosition(position, rotationMatrix));
     }
 }
 
 //places promotion bubble on position
-let placeBubble = (position, team /*must change this in future*/) =>
+let placeBubble = (position) =>
 {
     let rect = squareArray[position[3]][position[2]][position[1]][position[0]].getBoundingClientRect();
     let width = document.documentElement.clientWidth;
@@ -828,11 +831,12 @@ let placeBubble = (position, team /*must change this in future*/) =>
     let vmin = Math.min(width, height);
     let l = ((rect.left - (width - vmin) / 2) / vmin) * 100;
     let t = ((rect.top - (height - vmin) / 2) / vmin) * 100;
-    let bubble = promotionBubbles[team ? 1 : 0];
+    
+    let bubble = position[3] < 2 ? promotionBubbles[1] : promotionBubbles[0];
     bubble.style.left = "calc(50% - 50vmin + " + l + "vmin)";
     bubble.style.top = "calc(50% - 50vmin + " + t + "vmin)";
     bubble.style.visibility = "visible";
-    promotedPawnPosition = position;
+    promotedPawnPosition = rotatePosition(position, inverseRotationMatrix);
 }
 //promotes the pawnToBePromoted pawn
 let promotePiece = (newRank) => //string
@@ -870,7 +874,7 @@ let turnMove = (position1, position2) =>
     moveHistoryElement.value += string;
     moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
 
-    if((piece.team && piece.position[1] == size-1 && piece.position[3] == size-1) || (!piece.team && piece.position[1] == 0 && piece.position[3] == 0))
+    if(piece.roleNumber == 0 && ((piece.team && piece.position[1] == size-1 && piece.position[3] == size-1) || (!piece.team && piece.position[1] == 0 && piece.position[3] == 0)))
         waitingForPromotion = true;
 
 }
