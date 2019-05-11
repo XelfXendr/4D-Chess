@@ -1,3 +1,9 @@
+/*
+Created by Jan "Xelf" Bronec.
+GitHub: https://github.com/XelfXendr
+Copyright 2019, Jan Bronec, All rights reserved.
+*/
+
 var ip = "localhost";
 var port = 11000;
 

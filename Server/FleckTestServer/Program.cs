@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+Created by Jan "Xelf" Bronec.
+GitHub: https://github.com/XelfXendr
+Copyright 2019, Jan Bronec, All rights reserved.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
