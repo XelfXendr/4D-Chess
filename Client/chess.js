@@ -353,7 +353,7 @@ let createBoard = () =>
     identityMatrix = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
     rotateBoard(null, false);
     //set up promotion bubbles
-    promotionBubbles = [createElement("div", ["bubble", "top"], null, null, document.body, false), createElement("div", ["bubble", "bottom"], null, null, document.body, false)];
+    promotionBubbles = [createElement("table", ["bubble", "top"], null, null, document.body, false), createElement("table", ["bubble", "bottom"], null, null, document.body, false)];
     for(let i = 0; i < 2; i++)
     {
         let black = true;
