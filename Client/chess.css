@@ -35,6 +35,10 @@ body
     0 0 2vmin 1vmin black;
     font-size: 5vmin
 }
+.messageBox.n1
+{
+    height: 60vmin;
+}
 .messageBox .centerText
 {
     position: relative;
@@ -69,6 +73,22 @@ body
     margin: 0 0.5vmin 0.5vmin 0.5vmin;
     font-size: 10vmin;
     box-shadow: 0 0 0.5vmin 0.2vmin black;
+}
+.messageButtonBox
+{
+    width: 100%;
+    height: 50vmin;
+}
+.linksTable
+{
+    width: 100%;
+    height: 10vmin;
+    font-size: 3vmin;
+}
+.linksTable img
+{
+    max-width: 6vmin;
+    max-height: 3vmin;
 }
 .messageButton.send
 {

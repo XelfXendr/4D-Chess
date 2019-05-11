@@ -65,14 +65,26 @@ var createMessageBox = (id) =>
     {
         case 1: //initial create/join room window
         {
-            messageBox = createElement("div", ["messageBox"], null, null, document.body);
-            let createButton = createElement("div", ["messageButton","create"], null, "Create Room", messageBox);
-            let joinButton = createElement("div", ["messageButton","join"], null, "Join Room", messageBox);
-            createButton.onclick = () =>
+            messageBox = htmlToElement(
+                "<div class='messageBox n1'>" +
+                    "<div class='messageButtonBox'>" +
+                        "<div id='createButton' class='messageButton create'>Create Room</div>" +
+                        "<div id='joinButton' class='messageButton join'>Join Room</div>" +
+                    "</div>" +
+                    "<table class='linksTable'>" +
+                        "<tr>" +
+                            "<td><a href='https://youtu.be/3wFQPSEPgWc'><img src='Logos/yt_icon_rgb.png'> Explanation and original inspiration</a></td>" +
+                            "<td><a href='https://github.com/XelfXendr/4D-Chess'><img src='Logos/GitHub-Mark-32px.png'> GitHub</a></td>" +
+                        "</tr>" +
+                        "<tr><td><img src='Logos/Xelf_logo_black_64px.png'> Created by Jan \"Xelf\" Bronec, 2019</td></tr>" +
+                    "</table>" +
+                "</div>");
+            document.body.appendChild(messageBox);
+            document.getElementById("createButton").onclick = () =>
             {
                 createMessageBox(2);
             };
-            joinButton.onclick = () =>
+            document.getElementById("joinButton").onclick = () =>
             {
                 createMessageBox(3);
             };
@@ -80,21 +92,27 @@ var createMessageBox = (id) =>
         }
         case 2: //enter password for the room you want to create
         {
-            messageBox = createElement("div", ["messageBox"], null, null, document.body);
-            let table = createElement("table", ["joinTable"], null, null, messageBox);
-            let tr = createElement("tr", null, null, null, table);
-            createElement("td", null, null, "Create password:", tr);
-            let td = createElement("td", null, null, null, tr);
-            let passwordInput = createElement("input", null, null, null, td);
-            let passwordError = createElement("div", ["error"], null, null, td);
-            passwordInput.type = "password";
-
-            tr = createElement("tr", null, null, null, table);
-            createElement("td", null, null, null, tr);
-            td = createElement("td", null, null, null, tr);
-            let sendButton = createElement("div", ["messageButton", "send"], null, "Send", td);
-            
-            sendButton.onclick = () => {
+            messageBox = htmlToElement(
+                "<div class='messageBox n2'>" +
+                    "<table class='joinTable'>" +
+                        "<tr>" +
+                            "<td>Create password:</td>" +
+                            "<td>" +
+                                "<input id='passwordInput' type='password'>" +
+                                "<div id='passwordError' class='error'></div>" +
+                            "</td>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<td></td>" +
+                            "<td><div id='sendButton' class='messageButton send'>Send</div></td>" +
+                        "</tr>" +
+                    "</table>" +
+                "</div>");
+            document.body.appendChild(messageBox);
+            let passwordInput = document.getElementById("passwordInput");
+            let passwordError = document.getElementById("passwordError");
+            document.getElementById("sendButton").onclick = () =>
+            {
                 let password = passwordInput.value;
                 if(password.includes(" "))
                 {
@@ -118,33 +136,41 @@ var createMessageBox = (id) =>
                         createMessageBox(4);
                     }
                 }
-            }
+            };
             break;
         }
         case 3: //enter number and password of the room you want to join
         {
-            messageBox = createElement("div", ["messageBox"], null, null, document.body);
-            let table = createElement("table", ["joinTable"], null, null, messageBox);
-
-            let tr = createElement("tr", null, null, null, table);
-            createElement("td", null, null, "Room number:", tr);
-            let td = createElement("td", null, null, null, tr);
-            let numberInput = createElement("input", null, null, null, td);
-            numberInput.type = "text";
-            let numberError = createElement("div", ["error"], null, null, td);
-
-            tr = createElement("tr", null, null, null, table);
-            createElement("td", null, null, "Room password:", tr);
-            td = createElement("td", null, null, null, tr);
-            let passwordInput = createElement("input", null, null, null, td);
-            passwordInput.type = "password";
-            let passwordError = createElement("div", ["error"], null, null, td);
-
-            tr = createElement("tr", null, null, null, table);
-            createElement("td", null, null, null, tr);
-            td = createElement("td", null, null, null, tr);
-            let sendButton = createElement("div", ["messageButton", "send"], null, "Send", td);
-
+            messageBox = htmlToElement(
+                "<div class='messageBox n3'>" +
+                    "<table class='joinTable'>" +
+                        "<tr>" +
+                            "<td>Room number:</td>" +
+                            "<td>" +
+                                "<input id='numberInput' type='text'>" +
+                                "<div id='numberError' class='error'></div>" +
+                            "</td>" + 
+                        "</tr>" +
+                        "<tr>" +
+                            "<td>Room password:</td>" +
+                            "<td>" +
+                                "<input id='passwordInput' type='password'>" +
+                                "<div id='passwordError' class='error'></div>" +
+                            "</td>" + 
+                        "</tr>" +
+                        "<tr>" +
+                            "<td></td>" +
+                            "<td><div id='sendButton' class='messageButton send'>Send</div></td>" + 
+                        "</tr>" +
+                    "</table>" +
+                "</div>");
+            document.body.appendChild(messageBox);
+            let sendButton = document.getElementById("sendButton");
+            let numberInput = document.getElementById("numberInput");
+            let numberError = document.getElementById("numberError");
+            let passwordInput = document.getElementById("passwordInput");
+            let passwordError = document.getElementById("passwordError");
+            
             sendButton.onclick = () =>
             {
                 let password = passwordInput.value;
@@ -216,10 +242,15 @@ var createMessageBox = (id) =>
         }
         case 4: //choose team
         {
-            messageBox = createElement("div", ["messageBox"], null, null, document.body);
-            createElement("div", null, null, "Preffered team:", messageBox);
-            let whiteButton = createElement("div", ["messageButton", "white"], null, "White", messageBox);
-            let blackButton = createElement("div", ["messageButton", "black"], null, "Black", messageBox);
+            messageBox = htmlToElement(
+                "<div class='messageBox n4'>" +
+                    "<div>Preffered team:</div>" +
+                    "<div id='whiteButton' class='messageButton white'>White</div>" +
+                    "<div id='blackButton' class='messageButton black'>Black</div>" +
+                "</div>");
+            document.body.appendChild(messageBox);
+            let whiteButton = document.getElementById("whiteButton");
+            let blackButton = document.getElementById("blackButton");
             whiteButton.onclick = () => 
             {
                 socket.send("t 1");
@@ -266,12 +297,14 @@ var createMessageBox = (id) =>
         }
         case 5: //wait for othe player
         {
-            messageBox = createElement("div", ["messageBox"], null, null, document.body);
-            let div = createElement("div", ["centerText"], null, null, messageBox);
-            createElement("div", null, null, "Waiting for the other player.", div);
-            createElement("br", null, null, null, div);
-            createElement("div", null, null, "Room number: " + roomNumber, div);
-             
+            messageBox = htmlToElement(
+                "<div class='messageBox n5'>" +
+                    "<div class='centerText'>" +
+                        "<div>Waiting for the other player.</div><br>" +
+                        "<div>Room number: " + roomNumber + "</div>" +
+                    "</div>" +
+                "</div>");
+            document.body.appendChild(messageBox);
             break;
         }
         default:
@@ -281,7 +314,7 @@ var createMessageBox = (id) =>
 let createBoard = () =>
 {
     myTurn = myTeam;
-    mainBoard = document.getElementById("mainBoard");
+    mainBoard = createElement("table", null, "mainBoard", null, document.body, false);
     squareArray = [];
     pieces = [];
     //create board
@@ -320,8 +353,7 @@ let createBoard = () =>
     identityMatrix = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
     rotateBoard(null, false);
     //set up promotion bubbles
-    promotionBubbles = [document.getElementsByClassName("bubble top")[0]];
-    promotionBubbles.push(document.getElementsByClassName("bubble bottom")[0]);
+    promotionBubbles = [createElement("div", ["bubble", "top"], null, null, document.body, false), createElement("div", ["bubble", "bottom"], null, null, document.body, false)];
     for(let i = 0; i < 2; i++)
     {
         let black = true;
@@ -340,15 +372,26 @@ let createBoard = () =>
         tds[3].onclick = () => promotePiece(4);
     }
 
-    moveHistoryElement = document.getElementById("moveHistory");
-    document.getElementById("rotateFButton").onclick = () => rotateBoard(rotationPlane, false);
-    document.getElementById("rotateBButton").onclick = () => rotateBoard(rotationPlane, true);
-    document.getElementById("resetRotationButton").onclick = () => rotateBoard(null, false);
-    document.getElementById("planeSelector").onchange = (e) => 
-    {
-        rotationPlane[0] = Number(e.target.value[0]);
-        rotationPlane[1] = Number(e.target.value[1]);
-    };
+    moveHistoryElement = document.body.appendChild(htmlToElement("<textarea readonly id='moveHistory' placeholder='Move history'></textarea>"));   
+
+    document.body.appendChild(htmlToElement(
+        "<select id='planeSelector'>" +
+            "<option value='01'>XY</option>" +
+            "<option value='02'>XZ</option>" +
+            "<option value='03'>XW</option>" +
+            "<option value='12'>YZ</option>" +
+            "<option value='13'>YW</option>" +
+            "<option value='23'>ZW</option>" +
+        "</select>")).onchange = (e) => 
+        {
+            rotationPlane[0] = Number(e.target.value[0]);
+            rotationPlane[1] = Number(e.target.value[1]);
+        };
+
+    document.body.appendChild(htmlToElement("<input type='button' value='+90°' id='rotateFButton'>")).onclick = () => rotateBoard(rotationPlane, false);
+    document.body.appendChild(htmlToElement("<input type='button' value='-90°' id='rotateBButton'>")).onclick = () => rotateBoard(rotationPlane, true);
+    document.body.appendChild(htmlToElement("<input type='button' value='Reset' id='resetRotationButton'>")).onclick = () => rotateBoard(null, false);
+
 
     //put pieces on board
     resetPieces()
@@ -1036,4 +1079,10 @@ let createElement = (tag, classList, id, content, parent, first) => //creates a 
             parent.appendChild(element);
     }
     return element;
+}
+let htmlToElement = (html) =>
+{
+    let template = document.createElement("template");
+    template.innerHTML = html.trim();
+    return template.content.firstChild;
 }
