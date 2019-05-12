@@ -8,7 +8,7 @@ The original inspiration for this game is from [this video](https://youtu.be/3wF
 It's written to work in a Chrome browser, but should also work in Firefox.   
 I don't currently host the game anywhere.
 
-##More info
+## More info
 
  * The server uses a NuGet package [Fleck](https://github.com/statianzo/Fleck) for websockets in c#. You'll have to restore it before compiling.
  * The background image is from [Unsplash](https://unsplash.com/).
