@@ -24,7 +24,7 @@ namespace FleckTestServer
         {
             IPAddress ip;
             int port;
-            Console.Write("Enter ip address of the sever: ");
+            Console.Write("Enter ip address of the server: ");
             while(!IPAddress.TryParse(Console.ReadLine(), out ip))
             {
                 Console.Write("Invalid address, try again: ");

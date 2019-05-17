@@ -4,8 +4,8 @@ GitHub: https://github.com/XelfXendr
 Copyright 2019, Jan Bronec, All rights reserved.
 */
 
-var ip = "localhost";
-var port = 11000;
+var address = "chess.sosehl.cz"; //server address
+var port = 11000; //server port
 
 var socket; //WebSocket connection to the server
 var messageBox;
@@ -20,6 +20,7 @@ var size = 4;//size of the board in all dimensions
 var myTurn;//bool
 var myTeam;// true => white, false => black
 
+var playerSelected = false; //has player selected a piece
 var selectedPosition; //[]
 var currentMoves; //[] of: {position: [], originPiece: pieces[i], action: string, (targetPiece)}
 
@@ -33,6 +34,7 @@ var pieceSymbols = [["♟","♜","♝","♞","♛","♚"],["♙","♖","♗","�
 var pieceNames = ["pawn","rook","bishop","knight","queen","king"];
 
 var moveHistoryElement;
+var turnSign;
 
 var identityMatrix;
 var rotationMatrix; //base is the identity matrix
@@ -42,11 +44,12 @@ var rotationPlane = [0,1]; //plane the board rotates around given by the index o
 /* 
 TODO:
 Secure sockets?
+En passant
 */
 
 //setting up stuff
 window.onload = () => {
-    socket = new WebSocket("ws://" + ip + ":" + port);
+    socket = new WebSocket("ws://" + address + ":" + port);
     socket.onerror = () =>
     {
         alert("Connection error.");
@@ -363,7 +366,7 @@ let createBoard = () =>
             let tr = createElement("tr", null, null, null, promotionBubbles[i], false);
             let td = createElement("td", ["bubbleSquare", black ? "black" : "white"], null, null, tr, false);
             tds.push(td);
-            let div = createElement("div", [pieceNames[j], myTeam ? "white" :  "black", "piece"], null, null, td, false);
+            createElement("div", [pieceNames[j], myTeam ? "white" :  "black", "piece"], null, null, td, false);
             black = !black;
         }
         tds[0].onclick = () => promotePiece(1);
@@ -372,7 +375,7 @@ let createBoard = () =>
         tds[3].onclick = () => promotePiece(4);
     }
 
-    moveHistoryElement = document.body.appendChild(htmlToElement("<textarea readonly id='moveHistory' placeholder='Move history'></textarea>"));   
+    moveHistoryElement = document.body.appendChild(htmlToElement("<textarea readonly id='moveHistory' placeholder='Move history'></textarea>"));
 
     document.body.appendChild(htmlToElement(
         "<select id='planeSelector'>" +
@@ -392,6 +395,8 @@ let createBoard = () =>
     document.body.appendChild(htmlToElement("<input type='button' value='-90°' id='rotateBButton'>")).onclick = () => rotateBoard(rotationPlane, true);
     document.body.appendChild(htmlToElement("<input type='button' value='Reset' id='resetRotationButton'>")).onclick = () => rotateBoard(null, false);
 
+    turnSign = document.body.appendChild(htmlToElement("<div id='turnSign'></div>"))
+    turnSign.classList.add(myTurn ? "true" : "false");
 
     //put pieces on board
     resetPieces()
@@ -413,6 +418,7 @@ let createBoard = () =>
             let position2 = [Number(message[5]), Number(message[6]), Number(message[7]), Number(message[8])];
             turnMove(position1, position2);
             myTurn = true;
+            updateTurnSign();
             return;
         }
         if(message[0] == "p")
@@ -420,6 +426,7 @@ let createBoard = () =>
             let position = [Number(message[1]), Number(message[2]), Number(message[3]), Number(message[4])];
             let rank = Number(message[5]);
             turnPromote(position, rank);
+            updateTurnSign();
         }
     }
     
@@ -524,26 +531,29 @@ let select = (e) =>
     let gamePos = rotatePosition(newPos, inverseRotationMatrix);
     let selectedElement = squareArray[newPos[3]][newPos[2]][newPos[1]][newPos[0]];
     
+    playerSelected = false;
     if(selectedElement.classList.contains("active"))
     {
         deselect();
         moveSelectedPiece(gamePos);
         myTurn = !myTurn;
+        updateTurnSign();
     }
     else
     {
         deselect();
         if(pieces.some(element => element.position.equals(gamePos) && element.team == (myTeam == myTurn)))
         {
+            playerSelected = true;
             selectedPosition = gamePos;
-            selectedElement.classList.add("selected");
-            showMovement(selectedPosition);
+            currentMoves = getMoves(selectedPosition);
+            showMoves(currentMoves);
         }
     }
 }
 //deselect square
 let deselect = () =>
-{   
+{
     for(let n = 0; n < size; n++)
     {
         for(let m = 0; m < size; m++)
@@ -569,18 +579,24 @@ let deselect = () =>
         }
     }
 }
-//show where selected piece can move
-let showMovement = (position) =>
+//find where selected piece can move
+let getMoves = (position) =>
 {
     let piece = pieceOnPosition(position);
-    currentMoves = movesOfPiece(piece);
-    currentMoves.forEach(p =>
-    {
-        let rotatedPosition = rotatePosition(p.position, rotationMatrix);
-        let square = squareArray[rotatedPosition[3]][rotatedPosition[2]][rotatedPosition[1]][rotatedPosition[0]];
-        square.classList.add(p.action);
-        square.classList.add("active");
-    });
+    return movesOfPiece(piece);
+}
+//shows moves on board
+let showMoves = (moves) =>
+{
+    if(moves.length > 0)
+        moves[0].originPiece.element.parentNode.classList.add("selected");
+    moves.forEach(m =>
+        {
+            let rotatedPosition = rotatePosition(m.position, rotationMatrix);
+            let square = squareArray[rotatedPosition[3]][rotatedPosition[2]][rotatedPosition[1]][rotatedPosition[0]];
+            square.classList.add(m.action);
+            square.classList.add("active");
+        });
 }
 //returns list of positions where a piece can move
 let movesOfPiece = (piece) =>
@@ -991,6 +1007,14 @@ let rotateBoard = (plane, clockwise) =>
         inverseRotationMatrix = multiplyMatrices(inverseRotationMatrix, createRotationMatrix(plane, !clockwise));
     }
     replacePieces();
+    if(playerSelected)
+        showMoves(currentMoves);
+}
+let updateTurnSign = () =>
+{
+    turnSign.classList.remove("false");
+    turnSign.classList.remove("true");
+    turnSign.classList.add((myTurn && !waitingForPromotion) ? "true" : "false");
 }
 
 /* helping functions */
