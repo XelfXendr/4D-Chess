@@ -67,7 +67,10 @@ namespace FleckTestServer
             room.sockets.Remove(socket);
             socketList.Remove(socket);
             if (room.sockets.Count == 0)
+            {
+                Console.WriteLine("[{0}] Removed room {1}", DateTime.Now, room.id);
                 rooms.Remove(room);
+            }
             Console.WriteLine("[{2}] Client {0}:{1} has disconnected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, DateTime.Now);
         }
 
@@ -134,7 +137,7 @@ namespace FleckTestServer
                 socket.OnMessage = m => SecondPhase(socket, room, m);
                 socket.OnClose = () => OnClose(socket, room);
                 socket.Send("j s " + i);
-                Console.WriteLine("Client {0}:{1} created room {2}", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, i);
+                Console.WriteLine("[{3}] Client {0}:{1} created room {2}", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, i, DateTime.Now);
                 return;
             }
             socket.Send("e 0"); //wrong command for 1st phase
