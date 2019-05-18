@@ -214,6 +214,10 @@ body::after /*so that background covers screen even on mobile*/
 {
     background: lightblue;
 }
+.square.lastTurn
+{
+    background: yellow;
+}
 .square.selected
 {
     background: rgb(255, 136, 0);

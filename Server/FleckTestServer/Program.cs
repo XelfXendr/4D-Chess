@@ -54,13 +54,13 @@ namespace FleckTestServer
         public static void OnOpen(IWebSocketConnection socket) //OnOpen
         {
             socketList.Add(socket);
-            Console.WriteLine("Client {0}:{1} has connected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort);
+            Console.WriteLine("[{2}] Client {0}:{1} has connected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, DateTime.Now);
         }
 
         public static void OnClose(IWebSocketConnection socket) //OnClose
         {
             socketList.Remove(socket);
-            Console.WriteLine("Client {0}:{1} has disconnected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort);
+            Console.WriteLine("[{2}] Client {0}:{1} has disconnected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, DateTime.Now);
         }
         public static void OnClose(IWebSocketConnection socket, Room room) //OnClose when client is in room
         {
@@ -68,7 +68,7 @@ namespace FleckTestServer
             socketList.Remove(socket);
             if (room.sockets.Count == 0)
                 rooms.Remove(room);
-            Console.WriteLine("Client {0}:{1} has disconnected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort);
+            Console.WriteLine("[{2}] Client {0}:{1} has disconnected.", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, DateTime.Now);
         }
 
         //OnMessage Events
@@ -113,7 +113,7 @@ namespace FleckTestServer
                 socket.OnMessage = m => SecondPhase(socket, room, m);
                 socket.OnClose = () => OnClose(socket, room);
                 socket.Send("j s " + id); //joined successfully
-                Console.WriteLine("Client {0}:{1} joined room {2}", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, id);
+                Console.WriteLine("[{3}] Client {0}:{1} joined room {2}", socket.ConnectionInfo.ClientIpAddress, socket.ConnectionInfo.ClientPort, id, DateTime.Now);
                 return;
             }
             if (command[0] == "c")//client is trying to create a room

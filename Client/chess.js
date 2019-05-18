@@ -23,6 +23,7 @@ var myTeam;// true => white, false => black
 var playerSelected = false; //has player selected a piece
 var selectedPosition; //[]
 var currentMoves; //[] of: {position: [], originPiece: pieces[i], action: string, (targetPiece)}
+var lastTurnPos; //position the piece from the last turn
 
 var promotionBubbles; //pawn promotion bubbles: [1] white, [0] black
 var promotedPawnPosition;
@@ -927,8 +928,16 @@ let turnMove = (position1, position2) =>
     {
         piece.hasMoved = true;
     }
+    if(lastTurnPos)
+    {
+        let screenLastTurnPos = rotatePosition(lastTurnPos, rotationMatrix);
+        squareArray[screenLastTurnPos[3]][screenLastTurnPos[2]][screenLastTurnPos[1]][screenLastTurnPos[0]].classList.remove("lastTurn");
+    }
+    lastTurnPos = position2;
     let screenPos = rotatePosition(position2, rotationMatrix);
-    squareArray[screenPos[3]][screenPos[2]][screenPos[1]][screenPos[0]].appendChild(piece.element);
+    let lastTurnSquare = squareArray[screenPos[3]][screenPos[2]][screenPos[1]][screenPos[0]];
+    lastTurnSquare.classList.add("lastTurn");
+    lastTurnSquare.appendChild(piece.element);
     //adding move to history
     let string = pieceSymbols[piece.team ? 1 : 0][piece.roleNumber]
         + "[" + positionToString(position1) + "]"
@@ -964,6 +973,11 @@ let turnPromote = (position, newRank) =>
 let rotateBoard = (plane, clockwise) => 
 {
     deselect();
+    if(lastTurnPos)
+    {
+        let screenLastTurnPos = rotatePosition(lastTurnPos, rotationMatrix);
+        squareArray[screenLastTurnPos[3]][screenLastTurnPos[2]][screenLastTurnPos[1]][screenLastTurnPos[0]].classList.remove("lastTurn");
+    }
     if(plane == null)
     {
         rotationMatrix = copyMatrix(identityMatrix);
@@ -1009,6 +1023,11 @@ let rotateBoard = (plane, clockwise) =>
     replacePieces();
     if(playerSelected)
         showMoves(currentMoves);
+    if(lastTurnPos)
+    {
+        let screenLastTurnPos = rotatePosition(lastTurnPos, rotationMatrix);
+        squareArray[screenLastTurnPos[3]][screenLastTurnPos[2]][screenLastTurnPos[1]][screenLastTurnPos[0]].classList.add("lastTurn");
+    }
 }
 let updateTurnSign = () =>
 {
