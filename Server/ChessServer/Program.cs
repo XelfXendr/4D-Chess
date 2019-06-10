@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fleck;
 
-namespace FleckTestServer
+namespace ChessServer
 {
     class Program
     {

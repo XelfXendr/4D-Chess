@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Obecné informace o sestavení se řídí přes následující 
 // sadu atributů. Změnou hodnot těchto atributů se upraví informace
 // přidružené k sestavení.
-[assembly: AssemblyTitle("FleckTestServer")]
+[assembly: AssemblyTitle("ChessServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("FleckTestServer")]
+[assembly: AssemblyProduct("ChessServer")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
