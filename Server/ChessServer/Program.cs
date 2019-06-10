@@ -20,21 +20,54 @@ namespace ChessServer
         static List<IWebSocketConnection> socketList;
         static List<Room> rooms;
         static readonly int maxNumberOfRooms = 1000;
-        static void Main()
+        static void Main(string[] args)
         {
             IPAddress ip;
             int port;
-            Console.Write("Enter ip address of the server: ");
-            while(!IPAddress.TryParse(Console.ReadLine(), out ip))
+            if(args.Length == 0)
             {
-                Console.Write("Invalid address, try again: ");
+                Console.Write("Enter ip address of the server: ");
+                while (!IPAddress.TryParse(Console.ReadLine(), out ip))
+                {
+                    Console.Write("Invalid address, try again: ");
+                }
+                Console.Write("Enter ip port of the sever 1024-49151: ");
+                while (!int.TryParse(Console.ReadLine(), out port) || port < 1024 || port > 49151)
+                {
+                    Console.Write("Invalid port, try again: ");
+                }
             }
-            Console.Write("Enter ip port of the sever 1024-49151: ");
-            while (!int.TryParse(Console.ReadLine(), out port) || port < 1024 || port > 49151)
+            if (args.Length == 1)
             {
-                Console.Write("Invalid port, try again: ");
+                if ((args[0] == "-h" || args[0] == "--help"))
+                {
+                    Console.WriteLine("ChessServer.exe [ip address] [port]");
+                    return;
+                }
+                Console.WriteLine("Invalid argument. ChessServer.exe [ip address] [port]");
+                return;
             }
+            else if(args.Length == 2)
+            {
+                if(!IPAddress.TryParse(args[0], out ip))
+                {
+                    Console.WriteLine("Invalid ip address.");
+                    return;
+                }
+                if(!int.TryParse(args[0], out port) || port < 1024 || port > 49151)
+                {
+                    Console.WriteLine("Invalid ip address.");
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid argument. ChessServer.exe [ip address] [port]");
+                return;
+            }
+
             server = new WebSocketServer(String.Format(ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? "ws://{0}:{1}" : "ws://[{0}]:{1}", ip, port));
+            server.RestartAfterListenError = true;
             socketList = new List<IWebSocketConnection>(); 
             rooms = new List<Room>();
             server.Start(socket => //start server
