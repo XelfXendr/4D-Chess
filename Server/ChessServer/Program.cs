@@ -69,10 +69,11 @@ namespace ChessServer
 
             server = new WebSocketServer(String.Format(ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? "ws://{0}:{1}" : "ws://[{0}]:{1}", ip, port));
             server.RestartAfterListenError = true;
-            socketList = new List<IWebSocketConnection>(); 
-            rooms = new List<Room>();
+            
             server.Start(socket => //start server
             {
+                socketList = new List<IWebSocketConnection>();
+                rooms = new List<Room>();
                 socket.OnOpen = () => OnOpen(socket);
                 socket.OnClose = () => OnClose(socket);
                 socket.OnMessage = message => FirstPhase(socket, message);
