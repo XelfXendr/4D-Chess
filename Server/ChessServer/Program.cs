@@ -24,6 +24,7 @@ namespace ChessServer
         {
             IPAddress ip;
             int port;
+
             if(args.Length == 0)
             {
                 Console.Write("Enter ip address of the server: ");
@@ -37,7 +38,7 @@ namespace ChessServer
                     Console.Write("Invalid port, try again: ");
                 }
             }
-            if (args.Length == 1)
+            else if (args.Length == 1)
             {
                 if ((args[0] == "-h" || args[0] == "--help"))
                 {
@@ -54,15 +55,15 @@ namespace ChessServer
                     Console.WriteLine("Invalid ip address.");
                     return;
                 }
-                if(!int.TryParse(args[0], out port) || port < 1024 || port > 49151)
+                if(!int.TryParse(args[1], out port) || port < 1024 || port > 49151)
                 {
-                    Console.WriteLine("Invalid ip address.");
+                    Console.WriteLine("Invalid port.");
                     return;
                 }
             }
             else
             {
-                Console.WriteLine("Invalid argument. ChessServer.exe [ip address] [port]");
+                Console.WriteLine("Invalid argument. ChessServer.exe [ip address] [port <1024-49151>]");
                 return;
             }
 
