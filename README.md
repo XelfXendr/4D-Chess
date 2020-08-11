@@ -5,8 +5,7 @@ A multiplayer web browser game of 4-dimensional chess and a server to run it.
 ## Introduction
 
 The original inspiration for this game is from [this video](https://youtu.be/3wFQPSEPgWc). It also explains how the 4d chess rules work.   
-It's written to work in a Chrome browser, but should also work in Firefox.   
-The game currently runs on http://chess.sosehl.cz
+It's written to work in a Chrome browser, but should also work in Firefox.
 
 ## More info
 
